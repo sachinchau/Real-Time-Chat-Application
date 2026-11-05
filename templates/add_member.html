@@ -1,0 +1,72 @@
+
+{% extends "base.html" %}
+
+{% block title %}Add Members | RealTime Chat{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4" style="max-width: 650px;">
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+
+            <h3 class="fw-bold mb-2">Add Members</h3>
+
+            <p class="text-muted">
+                Room: <strong>{{ room.room_name }}</strong>
+            </p>
+
+            <hr>
+
+            {% if users %}
+
+                <form method="POST">
+
+                    <label class="form-label fw-semibold">
+                        Select a user
+                    </label>
+
+                    <select name="user_id"
+                            class="form-select mb-3"
+                            required>
+
+                        <option value="">Choose a user</option>
+
+                        {% for user in users %}
+                            <option value="{{ user.id }}">
+                                {{ user.username }} ({{ user.email }})
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                    <button type="submit" class="btn btn-primary">
+                        Add Member
+                    </button>
+
+                    <a href="{{ url_for('chat.chat_rooms') }}"
+                       class="btn btn-outline-secondary">
+                        Back
+                    </a>
+
+                </form>
+
+            {% else %}
+
+                <div class="alert alert-info">
+                    No available users to add.
+                </div>
+
+                <a href="{{ url_for('chat.chat_rooms') }}"
+                   class="btn btn-secondary">
+                    Back to Rooms
+                </a>
+
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

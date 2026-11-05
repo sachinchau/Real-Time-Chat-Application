@@ -1,0 +1,161 @@
+
+{% extends "base.html" %}
+
+{% block title %}Group Rooms | RealTime Chat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .rooms-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .room-card {
+        background: white;
+        padding: 22px;
+        border-radius: 13px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+        margin-bottom: 15px;
+        transition: 0.2s;
+    }
+
+    .room-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    .room-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .room-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .room-name {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .join-btn {
+        background: #1d4ed8;
+        color: white;
+        text-decoration: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .join-btn:hover {
+        background: #1e40af;
+        color: white;
+    }
+
+    .empty-state {
+        background: white;
+        border-radius: 13px;
+        padding: 50px 20px;
+        text-align: center;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+    }
+
+    @media (max-width: 500px) {
+        .room-card {
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block navbar_links %}
+<a href="{{ url_for('chat.chat_users') }}"
+   class="btn btn-outline-light btn-sm">
+    Private Chats
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="rooms-header">
+    <div>
+        <h3 class="fw-bold">👥 Group Chat Rooms</h3>
+        <p class="text-muted mb-0">
+            Explore rooms and start conversations with groups.
+        </p>
+    </div>
+
+    <a href="{{ url_for('chat.create_room') }}"
+       class="btn btn-primary">
+        + Create Room
+    </a>
+</div>
+
+{% for room in rooms %}
+
+    <div class="room-card">
+
+        <div class="room-info">
+            <div class="room-icon">👥</div>
+
+            <div>
+                <div class="room-name">{{ room.room_name }}</div>
+                <small class="text-muted">Group Conversation</small>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+
+            <a href="{{ url_for('chat.group_chat', room_id=room.id) }}"
+            class="join-btn">
+                Join Room →
+            </a>
+
+            {% if room.created_by == current_user.id %}
+                <a href="{{ url_for('chat.add_room_member', room_id=room.id) }}"
+                class="btn btn-outline-primary btn-sm">
+                    + Add Member
+                </a>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+{% else %}
+
+    <div class="empty-state">
+        <div style="font-size:45px;">💬</div>
+        <h5 class="fw-bold mt-3">No Chat Rooms Yet</h5>
+        <p class="text-muted">
+            Create a group room and invite others to join the conversation.
+        </p>
+
+        <a href="{{ url_for('chat.create_room') }}"
+           class="btn btn-primary mt-2">
+            Create Your First Room
+        </a>
+    </div>
+
+{% endfor %}
+
+{% endblock %}

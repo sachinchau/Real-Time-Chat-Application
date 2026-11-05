@@ -1,0 +1,226 @@
+
+{% extends "base.html" %}
+
+{% block title %}Available Users | RealTime Chat{% endblock %}
+
+{% block extra_css %}
+<style>
+    .users-header {
+        margin-bottom: 25px;
+    }
+
+    .user-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.05);
+        transition: 0.2s;
+    }
+
+    .user-card:hover {
+        transform: translateY(-3px);
+    }
+
+    .user-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: #dbeafe;
+        color: #1d4ed8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 21px;
+        font-weight: bold;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+
+    .user-info {
+        flex-grow: 1;
+    }
+
+    .user-name {
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    .user-status {
+        font-size: 13px;
+    }
+
+    .chat-btn {
+        background: #1d4ed8;
+        color: white;
+        text-decoration: none;
+        padding: 9px 16px;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .chat-btn:hover {
+        background: #1e40af;
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block navbar_links %}
+<a href="{{ url_for('auth.dashboard') }}"
+   class="btn btn-outline-light btn-sm">
+    Dashboard
+</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="users-header">
+    <h3 class="fw-bold">Available Users</h3>
+    <p class="text-muted">
+        Find someone and start a conversation.
+    </p>
+</div>
+
+<div id="users-list">
+
+    {% for user in users %}
+
+        <div class="user-card">
+
+            <div class="d-flex align-items-center">
+
+                <div class="user-avatar">
+                    {{ user.username[0]|upper }}
+                </div>
+
+                <div class="user-info">
+
+                    <div class="user-name">
+                        {{ user.username }}
+                    </div>
+
+                    <span class="user-status"
+                          id="status-{{ user.id }}">
+
+                        {% if user.id in online_user_ids %}
+                            🟢 Online
+                        {% else %}
+                            ⚫ Offline
+                        {% endif %}
+
+                    </span>
+
+                    <br>
+
+                    <small class="text-muted"
+                           id="last-seen-{{ user.id }}"
+                           {% if user.id in online_user_ids %}
+                               style="display:none;"
+                           {% endif %}>
+
+                        {% if user.last_seen %}
+                            Last seen: {{ user.last_seen.strftime('%d %b %Y, %I:%M %p') }}
+                        {% else %}
+                            Last seen: Unavailable
+                        {% endif %}
+
+                    </small>
+
+                </div>
+
+            </div>
+
+            <a href="{{ url_for('chat.private_chat', user_id=user.id) }}"
+               class="chat-btn">
+                Message
+            </a>
+
+        </div>
+
+    {% else %}
+
+        <div class="content-card text-center">
+            <h5>No users available</h5>
+            <p class="text-muted mb-0">
+                Other registered users will appear here.
+            </p>
+        </div>
+
+    {% endfor %}
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="https://cdn.jsdelivr.net/npm/socket.io-client@4.8.1/dist/socket.io.min.js"></script>
+
+<script>
+
+    const socket = io();
+
+    socket.on('connect', function() {
+        console.log("Connected to server!");
+    });
+
+    socket.on('receive_message', function(data) {
+
+        console.log("New message received:", data);
+
+        socket.emit('message_delivered', {
+            message_id: data.message_id
+        });
+
+        alert(
+            "New message from " +
+            data.sender_name + ": " +
+            data.content
+        );
+
+    });
+
+    socket.on('user_status', function(data) {
+
+        const statusElement = document.getElementById(
+            'status-' + data.user_id
+        );
+
+        const lastSeenElement = document.getElementById(
+            'last-seen-' + data.user_id
+        );
+
+        if (statusElement) {
+
+            if (data.status === 'online') {
+
+                statusElement.textContent = '🟢 Online';
+
+                if (lastSeenElement) {
+                    lastSeenElement.style.display = 'none';
+                }
+
+            } else {
+
+                statusElement.textContent = '⚫ Offline';
+
+                if (lastSeenElement) {
+                    lastSeenElement.textContent =
+                        'Last seen: ' + (data.last_seen || 'Unavailable');
+
+                    lastSeenElement.style.display = 'inline';
+                }
+
+            }
+
+        }
+
+    });
+
+</script>
+
+{% endblock %}
